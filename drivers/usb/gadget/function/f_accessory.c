@@ -816,6 +816,8 @@ static int acc_open(struct inode *ip, struct file *fp)
 {
 	struct acc_dev *dev = get_acc_dev();
 
+	pr_debug_once("acc_open\n");
+
 	if (!dev)
 		return -ENODEV;
 
@@ -832,6 +834,8 @@ static int acc_open(struct inode *ip, struct file *fp)
 static int acc_release(struct inode *ip, struct file *fp)
 {
 	struct acc_dev *dev = fp->private_data;
+
+	pr_debug_once("acc_release\n");
 
 	if (!dev)
 		return -ENOENT;
