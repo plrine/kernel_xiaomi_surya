@@ -239,6 +239,15 @@ config ARCH_SM8150
 	  This enables support for the SM8150 chipset. If you do not
 	  wish to build a kernel that runs on this chipset, say 'N' here.
 
+config ARCH_SDMMAGPIE
+	bool "Enable Support for Qualcomm Technologies, Inc. SDMMAGPIE"
+	depends on ARCH_QCOM
+	select COMMON_CLK
+	select COMMON_CLK_QCOM
+	help
+	  This enables support for the SDMMAGPIE (SM7150/SM6150) chipset. If you do not
+	  wish to build a kernel that runs on this chipset, say 'N' here.
+
 config ARCH_REALTEK
 	bool "Realtek Platforms"
 	help
