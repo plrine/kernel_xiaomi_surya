@@ -369,7 +369,7 @@
 		qcom,dsi-panel = <&dsi_nt36672c_tianma_fhd_video>;
 	};
 
-	sde_dsi: qcom,dsi-display {
+	sde_dsi: qcom,dsi-display-primary {
 		compatible = "qcom,dsi-display";
 
 		qcom,dsi-ctrl = <&mdss_dsi0>;
