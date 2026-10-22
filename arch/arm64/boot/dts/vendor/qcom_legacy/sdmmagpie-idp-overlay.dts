@@ -24,8 +24,8 @@
 / {
 	model = "IDP";
 	compatible = "qcom,sdmmagpie-idp", "qcom,sdmmagpie", "qcom,idp";
-	qcom,msm-id = <365 0x0>;
-	qcom,board-id = <34 0>;
+	qcom,msm-id = <365 0x0>, <355 0x0>, <366 0x0>, <369 0x0>;
+	qcom,board-id = <34 0>, <0 0>;
 };
 
 &dsi_nt36672c_huaxing_fhd_video_display {
