@@ -642,11 +642,18 @@ source "drivers/misc/vmw_vmci/Kconfig"
 source "drivers/misc/mic/Kconfig"
 source "drivers/misc/genwqe/Kconfig"
 source "drivers/misc/echo/Kconfig"
+config LDO_WL2866D
+	bool "multi ldo wl2866d"
+	help
+	  This option enables multi ldo wl2866d.
+
 source "drivers/misc/cxl/Kconfig"
 source "drivers/misc/ocxl/Kconfig"
 source "drivers/misc/cardreader/Kconfig"
 source "drivers/misc/fpr_FingerprintCard/Kconfig"
 source "drivers/misc/qrc/Kconfig"
+source "drivers/misc/aw8624_haptic/Kconfig"
+source "drivers/misc/drv2624_haptic/Kconfig"
 endmenu
 
 config OKL4_USER_VIPC
