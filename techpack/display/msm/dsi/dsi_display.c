@@ -3658,7 +3658,8 @@ static int dsi_display_get_phandle_index(
 			struct dsi_display *display,
 			const char *propname, int count, int index)
 {
-	struct device_node *disp_node = display->panel_node;
+	struct device_node *disp_node = display->disp_node ?
+					display->disp_node : display->panel_node;
 	u32 *val = NULL;
 	int rc = 0;
 
@@ -3691,11 +3692,14 @@ end:
 static int dsi_display_get_phandle_count(struct dsi_display *display,
 			const char *propname)
 {
+	struct device_node *disp_node = display->disp_node ?
+					display->disp_node : display->panel_node;
+
 	if (display->fw)
 		return dsi_parser_count_u32_elems(display->parser_node,
 				propname);
 	else
-		return of_property_count_u32_elems(display->panel_node,
+		return of_property_count_u32_elems(disp_node,
 				propname);
 }
 
@@ -4788,10 +4792,17 @@ static int _dsi_display_dev_init(struct dsi_display *display)
 		return -EINVAL;
 	}
 
-	if (!display->panel_node && !display->fw)
+	if (!display->panel_node && !display->disp_node && !display->fw)
 		return 0;
 
 	mutex_lock(&display->display_lock);
+
+	if (display->disp_node) {
+		display->display_type = of_get_property(display->disp_node,
+						"qcom,display-type", NULL);
+		if (!display->display_type)
+			display->display_type = "primary";
+	}
 
 	display->parser = dsi_parser_get(&display->pdev->dev);
 	if (display->fw && display->parser)
@@ -5410,6 +5421,55 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 			DSI_WARN("default panel not found\n");
 	}
 
+	if (!panel_node) {
+		const char *disp_list = "qcom,dsi-display-list";
+		const char *disp_active = "qcom,dsi-display-active";
+		int count = of_count_phandle_with_args(node, disp_list, NULL);
+		struct device_node *disp_node = NULL;
+		int i;
+
+		for (i = 0; i < count; i++) {
+			struct device_node *np = of_parse_phandle(node, disp_list, i);
+			const char *name;
+
+			if (!np)
+				continue;
+
+			name = of_get_property(np, "label", NULL);
+			if (!name) {
+				of_node_put(np);
+				continue;
+			}
+
+			if (boot_disp->boot_disp_en) {
+				if (!strcmp(boot_disp->name, name)) {
+					disp_node = np;
+					break;
+				}
+				of_node_put(np);
+				continue;
+			}
+
+			if (of_property_read_bool(np, disp_active)) {
+				disp_node = np;
+				break;
+			}
+			of_node_put(np);
+		}
+
+		if (!disp_node && count > 0)
+			disp_node = of_parse_phandle(node, disp_list, 0);
+
+		if (disp_node) {
+			display->disp_node = disp_node;
+			panel_node = of_parse_phandle(disp_node, "qcom,dsi-panel", 0);
+			display->name = of_get_property(disp_node, "label", NULL);
+			DSI_INFO("Selected display [%s] panel [%s]\n",
+				display->name ? display->name : "unknown",
+				panel_node ? panel_node->name : "null");
+		}
+	}
+
 	boot_disp->node = pdev->dev.of_node;
 	boot_disp->disp = display;
 
@@ -5469,6 +5529,8 @@ int dsi_display_dev_remove(struct platform_device *pdev)
 
 	/* decrement ref count */
 	of_node_put(display->panel_node);
+	if (display->disp_node)
+		of_node_put(display->disp_node);
 
 	if (display->dma_cmd_workq) {
 		flush_workqueue(display->dma_cmd_workq);

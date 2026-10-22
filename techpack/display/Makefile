@@ -34,11 +34,11 @@ LINUXINCLUDE    += -include $(srctree)/techpack/display/config/msmniledispconf.h
 endif
 
 ifeq ($(CONFIG_ARCH_SDMMAGPIE), y)
-include $(srctree)/techpack/display/config/msmniledisp.conf
+include $(srctree)/techpack/display/config/sdmmagpiedisp.conf
 endif
 
 ifeq ($(CONFIG_ARCH_SDMMAGPIE), y)
-LINUXINCLUDE    += -include $(srctree)/techpack/display/config/msmniledispconf.h
+LINUXINCLUDE    += -include $(srctree)/techpack/display/config/sdmmagpiedispconf.h
 endif
 
 obj-$(CONFIG_DRM_MSM) += msm/
