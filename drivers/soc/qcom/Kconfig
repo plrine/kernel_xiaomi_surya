@@ -126,6 +126,22 @@ config QCOM_SM8150_LLCC
 	  data required to configure LLCC so that clients can start using the
 	  LLCC slices.
 
+config QCOM_SDMMAGPIE_LLCC
+	tristate "Qualcomm Technologies, Inc. SDMMAGPIE LLCC driver"
+	depends on QCOM_LLCC
+	help
+	  Say yes here to enable the LLCC driver for SDMMAGPIE. This provides
+	  data required to configure LLCC so that clients can start using the
+	  LLCC slices.
+
+config QCOM_SM6150_LLCC
+	tristate "Qualcomm Technologies, Inc. SM6150 LLCC driver"
+	depends on QCOM_LLCC
+	help
+	  Say yes here to enable the LLCC driver for SM6150. This provides
+	  data required to configure LLCC so that clients can start using the
+	  LLCC slices.
+
 config QCOM_KONA_LLCC
 	tristate "Qualcomm Technologies, Inc. KONA LLCC driver"
 	depends on QCOM_LLCC
