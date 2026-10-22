@@ -4,6 +4,8 @@
 #ifndef __QCOM_RPMH_REGULATOR_H
 #define __QCOM_RPMH_REGULATOR_H
 
+#include <dt-bindings/regulator/qcom,rpmh-regulator-levels.h>
+
 /*
  * These mode constants may be used to specify modes for various RPMh regulator
  * device tree properties (e.g. regulator-initial-mode).  Each type of regulator
@@ -28,9 +30,17 @@
  *				regulators.  This mode is supported by all types
  *				of regulators.
  */
+#ifndef RPMH_REGULATOR_MODE_RET
 #define RPMH_REGULATOR_MODE_RET		0
+#endif
+#ifndef RPMH_REGULATOR_MODE_LPM
 #define RPMH_REGULATOR_MODE_LPM		1
+#endif
+#ifndef RPMH_REGULATOR_MODE_AUTO
 #define RPMH_REGULATOR_MODE_AUTO	2
+#endif
+#ifndef RPMH_REGULATOR_MODE_HPM
 #define RPMH_REGULATOR_MODE_HPM		3
+#endif
 
 #endif
