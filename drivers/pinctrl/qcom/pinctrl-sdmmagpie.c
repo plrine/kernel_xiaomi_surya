@@ -1550,6 +1550,7 @@ static int sdmmagpie_pinctrl_probe(struct platform_device *pdev)
 
 static const struct of_device_id sdmmagpie_pinctrl_of_match[] = {
 	{ .compatible = "qcom,sdmmagpie-pinctrl", },
+	{ .compatible = "qcom,sm6150-pinctrl", },
 	{ },
 };
 
