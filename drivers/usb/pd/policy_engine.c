@@ -4692,6 +4692,142 @@ static void usbpd_release(struct device *dev)
 
 static int num_pd_instances;
 
+static struct usbpd *g_pd;
+
+struct usbpd *smb_get_g_pd(void)
+{
+	return g_pd;
+}
+EXPORT_SYMBOL(smb_get_g_pd);
+
+struct usbpd *smb_get_usbpd(void)
+{
+	return g_pd;
+}
+EXPORT_SYMBOL(smb_get_usbpd);
+
+int usbpd_get_pps_status(struct usbpd *pd, u32 *pps_status)
+{
+	int ret;
+
+	if (!pd || !pps_status)
+		return -EINVAL;
+
+	if (pd->spec_rev == USBPD_REV_20)
+		return -EINVAL;
+
+	ret = trigger_tx_msg(pd, &pd->send_get_pps_status);
+	if (ret)
+		return ret;
+
+	*pps_status = pd->pps_status_db;
+
+	return ret;
+}
+EXPORT_SYMBOL(usbpd_get_pps_status);
+
+int usbpd_fetch_pdo(struct usbpd *pd, struct usbpd_pdo *pdos)
+{
+	int ret = 0;
+	int pdo;
+	int i;
+
+	if (!pd || !pdos)
+		return -EINVAL;
+
+	mutex_lock(&pd->swap_lock);
+
+	if (pd->current_pr == PR_SRC) {
+		usbpd_err(&pd->dev, "not support in SRC mode\n");
+		ret = -ENOTSUPP;
+		goto out;
+	}
+
+	for (i = 0; i < 7; i++) {
+		pdo = pd->received_pdos[i];
+		if (pdo == 0)
+			break;
+
+		pdos[i].pos = i + 1;
+		pdos[i].pps = PD_APDO_PPS(pdo) == 0;
+		pdos[i].type = PD_SRC_PDO_TYPE(pdo);
+
+		if (pdos[i].type == PD_SRC_PDO_TYPE_FIXED) {
+			pdos[i].curr_ma = PD_SRC_PDO_FIXED_MAX_CURR(pdo) * 10;
+			pdos[i].max_volt_mv = PD_SRC_PDO_FIXED_VOLTAGE(pdo) * 50;
+			pdos[i].min_volt_mv = PD_SRC_PDO_FIXED_VOLTAGE(pdo) * 50;
+		} else if (pdos[i].type == PD_SRC_PDO_TYPE_AUGMENTED) {
+			pdos[i].max_volt_mv = PD_APDO_MAX_VOLT(pdo) * 100;
+			pdos[i].min_volt_mv = PD_APDO_MIN_VOLT(pdo) * 100;
+			pdos[i].curr_ma     = PD_APDO_MAX_CURR(pdo) * 50;
+		} else {
+			usbpd_err(&pd->dev, "only fixed and pps pdo supported\n");
+		}
+	}
+
+out:
+	mutex_unlock(&pd->swap_lock);
+	return ret;
+}
+EXPORT_SYMBOL(usbpd_fetch_pdo);
+
+int usbpd_select_pdo(struct usbpd *pd, int pdo, int uv, int ua)
+{
+	int ret;
+
+	if (!pd)
+		return -EINVAL;
+
+	mutex_lock(&pd->swap_lock);
+
+	if (pd->current_pr != PR_SINK) {
+		ret = -ENOTSUPP;
+		goto out;
+	}
+
+	/* Only allowed if we are already in explicit sink contract */
+	if (pd->current_state != PE_SNK_READY || !is_sink_tx_ok(pd)) {
+		usbpd_err(&pd->dev, "select_pdo: Cannot select new PDO yet\n");
+		ret = -EBUSY;
+		goto out;
+	}
+
+	if (pdo < 1 || pdo > 7) {
+		usbpd_err(&pd->dev, "select_pdo: invalid PDO:%d\n", pdo);
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = pd_select_pdo(pd, pdo, uv, ua);
+	if (ret)
+		goto out;
+
+	reinit_completion(&pd->is_ready);
+	pd->send_request = true;
+	kick_sm(pd, 0);
+
+	/* wait for operation to complete */
+	if (!wait_for_completion_timeout(&pd->is_ready,
+			msecs_to_jiffies(1000))) {
+		usbpd_err(&pd->dev, "select_pdo: request timed out\n");
+		ret = -ETIMEDOUT;
+		goto out;
+	}
+
+	/* determine if request was accepted/rejected */
+	if (pd->selected_pdo != pd->requested_pdo ||
+			pd->current_voltage != pd->requested_voltage) {
+		usbpd_err(&pd->dev, "select_pdo: request rejected\n");
+		ret = -EINVAL;
+	}
+
+out:
+	pd->send_request = false;
+	mutex_unlock(&pd->swap_lock);
+	return ret;
+}
+EXPORT_SYMBOL(usbpd_select_pdo);
+
 /**
  * usbpd_create - Create a new instance of USB PD protocol/policy engine
  * @parent - parent device to associate with
@@ -4883,6 +5019,8 @@ struct usbpd *usbpd_create(struct device *parent)
 	/* force read initial power_supply values */
 	psy_changed(&pd->psy_nb, PSY_EVENT_PROP_CHANGED, pd->usb_psy);
 
+	g_pd = pd;
+
 	return pd;
 
 del_inst:
@@ -4908,6 +5046,9 @@ void usbpd_destroy(struct usbpd *pd)
 {
 	if (!pd)
 		return;
+
+	if (g_pd == pd)
+		g_pd = NULL;
 
 	list_del(&pd->instance);
 	power_supply_unreg_notifier(&pd->psy_nb);
