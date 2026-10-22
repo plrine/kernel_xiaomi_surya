@@ -27,6 +27,13 @@ obj-$(CONFIG_MSM_GPUCC_SM8150) += gpucc-sm8150.o
 obj-$(CONFIG_MSM_NPUCC_SM8150) += npucc-sm8150.o
 obj-$(CONFIG_MSM_SCC_SM8150) += scc-sm8150.o
 obj-$(CONFIG_MSM_VIDEOCC_SM8150) += videocc-sm8150.o
+obj-$(CONFIG_MSM_CAMCC_SDMMAGPIE) += camcc-sdmmagpie.o
+obj-$(CONFIG_MSM_DISPCC_SDMMAGPIE) += dispcc-sdmmagpie.o
+obj-$(CONFIG_MSM_DEBUGCC_SDMMAGPIE) += debugcc-sdmmagpie.o
+obj-$(CONFIG_MSM_GCC_SDMMAGPIE) += gcc-sdmmagpie.o
+obj-$(CONFIG_MSM_GPUCC_SDMMAGPIE) += gpucc-sdmmagpie.o
+obj-$(CONFIG_MSM_NPUCC_SDMMAGPIE) += npucc-sdmmagpie.o
+obj-$(CONFIG_MSM_VIDEOCC_SDMMAGPIE) += videocc-sdmmagpie.o
 
 # Keep alphabetically sorted by config
 obj-$(CONFIG_APQ_GCC_8084) += gcc-apq8084.o
