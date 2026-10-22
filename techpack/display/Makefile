@@ -33,6 +33,14 @@ ifeq ($(CONFIG_ARCH_SM8150), y)
 LINUXINCLUDE    += -include $(srctree)/techpack/display/config/msmniledispconf.h
 endif
 
+ifeq ($(CONFIG_ARCH_SDMMAGPIE), y)
+include $(srctree)/techpack/display/config/msmniledisp.conf
+endif
+
+ifeq ($(CONFIG_ARCH_SDMMAGPIE), y)
+LINUXINCLUDE    += -include $(srctree)/techpack/display/config/msmniledispconf.h
+endif
+
 obj-$(CONFIG_DRM_MSM) += msm/
 obj-$(CONFIG_MSM_SDE_ROTATOR) += rotator/
 obj-$(CONFIG_QCOM_MDSS_PLL) += pll/
