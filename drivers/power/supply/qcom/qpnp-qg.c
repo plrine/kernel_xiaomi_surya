@@ -1662,10 +1662,17 @@ static const char *qg_get_battery_type(struct qpnp_qg *chip)
 	if (is_debug_batt_id(chip))
 		return DEBUG_BATT_TYPE;
 
+#ifdef CONFIG_BATT_VERIFY_BY_DS28E16
 	if ((chip->profile_judge_done) && (chip->bp.batt_type_str))  {
 		if (chip->profile_loaded)
 			return chip->bp.batt_type_str;
 	}
+#else
+	if (chip->bp.batt_type_str) {
+		if (chip->profile_loaded)
+			return chip->bp.batt_type_str;
+	}
+#endif
 
 	return DEFAULT_BATT_TYPE;
 }
