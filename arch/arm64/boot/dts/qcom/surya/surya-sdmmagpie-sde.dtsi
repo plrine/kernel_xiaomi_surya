@@ -1,4 +1,8 @@
 &mdss_mdp {
 	clock-rate = <0 0 0 0 344000000 19200000 200000000
 				200000000>;
+	qcom,sde-qos-cpu-mask = <0xff>;
+	qcom,sde-qos-cpu-dma-latency = <150>;
+	qcom,sde-min-core-ib-kbps = <3200000>;
+	qcom,sde-min-dram-ib-kbps = <1600000>;
 };
